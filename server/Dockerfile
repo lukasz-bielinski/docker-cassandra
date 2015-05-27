@@ -1,9 +1,9 @@
-FROM oberthur/docker-ubuntu-java:jdk8_8.40.26
+FROM oberthur/docker-ubuntu-java:jdk8_8.45.14
 
 MAINTAINER Dawid Malinowski <d.malinowski@oberthur.com>
 
 ENV JVM_OPTS -server -Dcassandra.compaction.priority=1 -XX:+UseCompressedOops
-ENV CASSANDRA_VERSION 2.1.2
+ENV CASSANDRA_VERSION 2.1.5
 ENV DATASTAX_AGENT_VERSION 5.1.1
 
 RUN echo "deb http://debian.datastax.com/community stable main" | tee -a /etc/apt/sources.list.d/cassandra.sources.list \
