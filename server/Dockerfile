@@ -1,23 +1,48 @@
-FROM oberthur/docker-ubuntu-java:jdk8_8.74.02
+# vim:set ft=dockerfile:
+FROM debian:jessie-backports
 
-MAINTAINER Dawid Malinowski <d.malinowski@oberthur.com>
+# explicitly set user/group IDs
+RUN groupadd -r cassandra --gid=999 && useradd -r -g cassandra --uid=999 cassandra
 
-ENV JVM_OPTS="-server -Dcassandra.compaction.priority=1 -XX:+UseCompressedOops -XX:+AlwaysPreTouch" \
-  CASSANDRA_VERSION=3.0.3
+# grab gosu for easy step-down from root
+ENV GOSU_VERSION 1.7
+RUN set -x \
+        && apt-get update && apt-get install -y --no-install-recommends ca-certificates wget && rm -rf /var/lib/apt/lists/* \
+        && wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture)" \
+        && wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture).asc" \
+        && export GNUPGHOME="$(mktemp -d)" \
+        && gpg --keyserver ha.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
+        && gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
+        && rm -r "$GNUPGHOME" /usr/local/bin/gosu.asc \
+        && chmod +x /usr/local/bin/gosu \
+        && gosu nobody true \
+        && apt-get purge -y --auto-remove ca-certificates wget
 
-RUN echo "deb http://debian.datastax.com/community stable main" | tee -a /etc/apt/sources.list.d/cassandra.sources.list \
-    && curl -L http://debian.datastax.com/debian/repo_key | apt-key add - \
-    && apt-get update && apt-get install -y --force-yes sudo sysstat libjna-java dsc30=${CASSANDRA_VERSION}* cassandra=${CASSANDRA_VERSION}* cassandra-tools=${CASSANDRA_VERSION}* \
-    && sed -i -e "s/^rpc_address: localhost/# rpc_address: localhost/" /etc/cassandra/cassandra.yaml \
-    && sed -i -e "s/# rpc_interface: eth1/rpc_interface: eth0/" /etc/cassandra/cassandra.yaml \
-    && sed -i -e 's/<appender-ref ref="FILE" \/>/\r/' /etc/cassandra/logback.xml \
-    && mkdir /root/.cassandra \
-    && echo "[connection]\nclient_timeout=120" >> /root/.cassandra/cqlshrc \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean 
+RUN apt-key adv --keyserver ha.pool.sks-keyservers.net --recv-keys 514A2AD631A57A16DD0047EC749D6EEC0353B12C
 
-ADD start-cassandra.sh /bin/start-cassandra.sh
+RUN echo 'deb http://www.apache.org/dist/cassandra/debian 21x main' >> /etc/apt/sources.list.d/cassandra.list
 
-EXPOSE 7000 7001 7199 9160 9042 61621 61622
+ENV CASSANDRA_VERSION 2.1.13
 
-CMD ["sh", "/bin/start-cassandra.sh"]
+RUN apt-get update \
+        && apt-get install -y cassandra="$CASSANDRA_VERSION" \
+        && rm -rf /var/lib/apt/lists/*
+
+ENV CASSANDRA_CONFIG /etc/cassandra
+
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+ENTRYPOINT ["/docker-entrypoint.sh"]
+
+RUN mkdir -p /var/lib/cassandra "$CASSANDRA_CONFIG" \
+        && chown -R cassandra:cassandra /var/lib/cassandra "$CASSANDRA_CONFIG" \
+        && chmod 777 /var/lib/cassandra "$CASSANDRA_CONFIG"
+VOLUME /var/lib/cassandra
+
+# 7000: intra-node communication
+# 7001: TLS intra-node communication
+# 7199: JMX
+# 9042: CQL
+# 9160: thrift service
+EXPOSE 7000 7001 7199 9042 9160
+CMD ["cassandra", "-f"]
+
