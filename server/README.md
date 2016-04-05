@@ -1,4 +1,4 @@
-This is a copy of official cassandra 2.1.13 with additional Auth environment vars.
+This is a copy of official cassandra with additional Auth environment vars.
 
 Please refer to this:
 https://hub.docker.com/_/cassandra/
