@@ -1,9 +1,9 @@
-This is a copy of official cassandra 2.1.13 with additional Auth environment vars.
+This is a copy of official cassandra 2.2 with additional Auth environment vars.
 
 Please refer to this:
 https://hub.docker.com/_/cassandra/
 
-ADDITIONALL environment variables that can be set:
+ADDITIONAL environment variables that can be set:
 
  CASSANDRA_AUTHENTICATOR
 
