@@ -26,6 +26,7 @@ ENV CASSANDRA_VERSION 2.2.6
 
 RUN apt-get update \
 	&& apt-get install -y cassandra="$CASSANDRA_VERSION" \
+	&& apt-get install -y vim less \
 	&& rm -rf /var/lib/apt/lists/*
 
 ENV CASSANDRA_CONFIG /etc/cassandra

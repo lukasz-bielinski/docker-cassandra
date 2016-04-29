@@ -43,6 +43,8 @@ if [ "$1" = 'cassandra' ]; then
 		num_tokens \
 		rpc_address \
 		start_rpc \
+		authenticator \
+		authorizer \
 	; do
 		var="CASSANDRA_${yaml^^}"
 		val="${!var}"
@@ -58,6 +60,10 @@ if [ "$1" = 'cassandra' ]; then
 			sed -ri 's/^('"$rackdc"'=).*/\1 '"$val"'/' "$CASSANDRA_CONFIG/cassandra-rackdc.properties"
 		fi
 	done
+
+	# fix cassandra-env.sh for jvm patch version > 99
+	sed -i "s/\"\$JVM_PATCH_VERSION\"\\ \\\\<\\ \"25\"/\"\$JVM_PATCH_VERSION\"\\ \\-lt\\ \"25\"/" /etc/cassandra/cassandra-env.sh
+
 fi
 
 exec "$@"
