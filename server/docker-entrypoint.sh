@@ -53,6 +53,10 @@ if [ "$1" = 'cassandra' ]; then
 		fi
 	done
 
+        if [ "$CASSANDRA_COMMITLOG_TOTAL" ]; then
+           sed -ri 's/^(# )?(commitlog_total_space_in_mb:).*/\2 '"$CASSANDRA_COMMITLOG_TOTAL"'/' "$CASSANDRA_CONFIG/cassandra.yaml"
+        fi
+
 	for rackdc in dc rack; do
 		var="CASSANDRA_${rackdc^^}"
 		val="${!var}"
