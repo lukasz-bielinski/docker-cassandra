@@ -18,6 +18,7 @@ RUN echo "deb http://debian.datastax.com/community stable main" | tee -a /etc/ap
     && apt-get clean 
 
 ADD start-cassandra.sh /bin/start-cassandra.sh
+ADD cassandra-env.sh /etc/cassandra/cassandra-env.sh
 
 EXPOSE 7000 7001 7199 9160 9042 61621 61622
 
