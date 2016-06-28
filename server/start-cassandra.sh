@@ -60,5 +60,10 @@ sed -i -e "s/# listen_interface: eth0/listen_interface: eth0/" /etc/cassandra/ca
 sed -i -e "s/# rpc_address: localhost/rpc_address: 0.0.0.0/" /etc/cassandra/cassandra.yaml
 sed -i -e "s/rpc_interface: eth0/# rpc_interface: eth1/" /etc/cassandra/cassandra.yaml
 
+if [ "$JMX_HOSTNAME" != "" ]; then
+  sed -i -e "s/# JVM_OPTS=\"\$JVM_OPTS -Djava.rmi.server.hostname=\<public name\>\"/JVM_OPTS=\"\$JVM_OPTS -Djava.rmi.server.hostname=${JMX_HOSTNAME}\"/" /etc/cassandra/cassandra-env.sh
+  sed -i -e "s/JVM_OPTS=\"\$JVM_OPTS -Dcom.sun.management.jmxremote.password.file=/etc/cassandra/jmxremote.password\"/JVM_OPTS=\"\$JVM_OPTS -Dcom.sun.management.jmxremote.password.file=/etc/cassandra/jmx/jmxremote.password\"/" /etc/cassandra/cassandra-env.sh
+fi
+
 (sleep 10 && service datastax-agent start &)
 exec /usr/sbin/cassandra -f -p /var/run/cassandra/cassandra.pid
