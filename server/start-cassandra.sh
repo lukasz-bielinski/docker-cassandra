@@ -65,5 +65,7 @@ if [ "$JMX_HOSTNAME" != "" ]; then
   sed -i -e "s/JVM_OPTS=\"\$JVM_OPTS -Dcom.sun.management.jmxremote.password.file=\/etc\/cassandra\/jmxremote.password\"/JVM_OPTS=\"\$JVM_OPTS -Dcom.sun.management.jmxremote.password.file=\/etc\/cassandra\/jmx\/jmxremote.password\"/" /etc/cassandra/cassandra-env.sh
 fi
 
+sed -i -e "s|<appender-ref ref=\"STDOUT\" \/>|<appender-ref ref=\"FILE\" \/>|" /etc/cassandra/logback.xml
+
 (sleep 10 && service datastax-agent start &)
 exec /usr/sbin/cassandra -f -p /var/run/cassandra/cassandra.pid
